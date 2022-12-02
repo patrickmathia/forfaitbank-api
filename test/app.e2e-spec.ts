@@ -1,8 +1,9 @@
+import { AuthDto } from "./../src/auth/dto/auth.dto";
 import { Test } from "@nestjs/testing";
 import { INestApplication, ValidationPipe } from "@nestjs/common";
 import { AppModule } from "./../src/app.module";
 import { PrismaService } from "../src/prisma/prisma.service";
-import * as pactum from 'pactum';
+import * as pactum from "pactum";
 
 describe("AppController (e2e)", () => {
    let app: INestApplication;
@@ -32,7 +33,17 @@ describe("AppController (e2e)", () => {
       app.close();
    });
 
-   describe('User', () => {
-    it.todo('should work')
-   })
+   describe("Auth", () => {
+      const dto: AuthDto = {
+         email: "pms@gmail.com",
+         password: "1234",
+      };
+
+      it("should throw if no email/password", () => {});
+      it("should throw if no body provided", () => {});
+
+      it("should sign up", () => {});
+
+      it("should sign in", () => {});
+   });
 });
