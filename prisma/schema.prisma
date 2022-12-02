@@ -6,6 +6,62 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name  String
+  email String
+  hash  String
+
+  address   String
+  cpf       String
+  birthdate DateTime
+
+  operations Operation[]
+
+  @@map("users")
+}
+
+model Operation {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name     String
+  value    Int
+  billType Int
+  status   String
+  packages Package[]
+
+  parentId Int?
+  parent   Operation?  @relation("OperationFamily", fields: [parentId], references: [id])
+  children Operation[] @relation("OperationFamily")
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  @@map("operations")
+}
+
+model Package {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  billType     Int
+  billQuantity Int
+  status       String
+  color        String
+
+  operationId     Int
+  parentOperation Operation @relation(fields: [operationId], references: [id])
+
+  @@map("packages")
 }
