@@ -1,0 +1,4 @@
+tasks:
+  - name: dev env
+    init: npm install && npm install -g @nestjs/cli
+    command: npm run start:dev
