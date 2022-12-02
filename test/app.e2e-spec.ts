@@ -1,3 +1,4 @@
+import { EditUserDto } from "./../src/user/dto/edit-user.dto";
 import { AuthDto } from "./../src/auth/dto/auth.dto";
 import { CreateUserDto } from "./../src/user/dto/create-user.dto";
 import { Test } from "@nestjs/testing";
@@ -69,6 +70,37 @@ describe("AppController (e2e)", () => {
             .withBody(authDto)
             .expectStatus(200)
             .stores("userAt", "access_token");
+      });
+   });
+
+   describe("User", () => {
+      it("should get current user", () => {
+         return pactum
+            .spec()
+            .get("/users/me")
+            .withHeaders({
+               Authorization: "Bearer $S{userAt}",
+            })
+            .expectStatus(200);
+      });
+      it("should edit user", () => {
+         const dto: EditUserDto = {
+            name: "Patrick Matias",
+            address: "Rua 5B, Jardim Nova Cidade",
+            birthdate: new Date(2003, 1, 1),
+         };
+
+         return pactum
+            .spec()
+            .patch("/users")
+            .withHeaders({
+               Authorization: "Bearer $S{userAt}",
+            })
+            .withBody(dto)
+            .expectStatus(200)
+            .expectBodyContains(dto.name)
+            .expectBodyContains(dto.address)
+            .expectBodyContains(dto.birthdate)
       });
    });
 });
