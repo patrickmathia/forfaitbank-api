@@ -1,4 +1,5 @@
 import { AuthDto } from "./../src/auth/dto/auth.dto";
+import { CreateUserDto } from "./../src/user/dto/create-user.dto";
 import { Test } from "@nestjs/testing";
 import { INestApplication, ValidationPipe } from "@nestjs/common";
 import { AppModule } from "./../src/app.module";
@@ -29,21 +30,45 @@ describe("AppController (e2e)", () => {
       pactum.request.setBaseUrl("http://localhost:3300");
    });
 
-   afterAll(() => {
+   afterAll(async () => {
+      await prisma.$disconnect();
       app.close();
    });
 
    describe("Auth", () => {
-      const dto: AuthDto = {
+      const dto: CreateUserDto = {
+         name: "Patrick",
          email: "pms@gmail.com",
          password: "1234",
+         cpf: "432.234.432-43",
+         birthdate: new Date(2003, 11, 22),
+         address: "Rua 5B",
       };
 
-      it("should throw if no email/password", () => {});
-      it("should throw if no body provided", () => {});
+      const authDto: AuthDto = {
+         email: dto.email,
+         password: dto.password,
+      };
 
-      it("should sign up", () => {});
+      it("should throw if no body provided", () => {
+         return pactum.spec().post("/auth/signup").expectStatus(400);
+      });
 
-      it("should sign in", () => {});
+      it("should sign up", () => {
+         return pactum
+            .spec()
+            .post("/auth/signup")
+            .withBody(dto)
+            .expectStatus(201);
+      });
+
+      it("should sign in", () => {
+         return pactum
+            .spec()
+            .post("/auth/signin")
+            .withBody(authDto)
+            .expectStatus(200)
+            .stores("userAt", "access_token");
+      });
    });
 });
