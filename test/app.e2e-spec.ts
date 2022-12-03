@@ -1,3 +1,5 @@
+import { Operation } from "./../src/operation/entities/operation.entity";
+import { CreatePackageDto } from "./../src/package/dto/create-package.dto";
 import { EditUserDto } from "./../src/user/dto/edit-user.dto";
 import { AuthDto } from "./../src/auth/dto/auth.dto";
 import { CreateUserDto } from "./../src/user/dto/create-user.dto";
@@ -75,10 +77,7 @@ describe("AppController (e2e)", () => {
 
    describe("User", () => {
       it("should throw if no access token provided", () => {
-         return pactum
-            .spec()
-            .get("/users/me")
-            .expectStatus(401);
+         return pactum.spec().get("/users/me").expectStatus(401);
       });
       it("should get current user", () => {
          return pactum
@@ -106,7 +105,40 @@ describe("AppController (e2e)", () => {
             .expectStatus(200)
             .expectBodyContains(dto.name)
             .expectBodyContains(dto.address)
-            .expectBodyContains(dto.birthdate)
+            .expectBodyContains(dto.birthdate);
       });
+   });
+
+   describe("Packages", () => {
+      const op: Operation = {
+         name: "operation 1",
+         billType: 10,
+         value: 5000,
+         userId: 1,
+         status: "closed",
+         packages: [],
+      };
+
+      const dto: CreatePackageDto = {
+         billQuantity: 50,
+         billType: 10,
+         status: "closed",
+         color: "#abc123",
+         parentOperation: op,
+      };
+
+      it("should create package", () => {
+         return pactum.spec().post("/packages").withBody(dto);
+      });
+      it("should update package", () => {});
+      it("should edit package", () => {});
+      it("should delete package", () => {});
+   });
+
+   describe("Operations", () => {
+      it("should create operation", () => {});
+      it("should update operation", () => {});
+      it("should edit operation", () => {});
+      it("should delete operation", () => {});
    });
 });
