@@ -74,6 +74,12 @@ describe("AppController (e2e)", () => {
    });
 
    describe("User", () => {
+      it("should throw if no access token provided", () => {
+         return pactum
+            .spec()
+            .get("/users/me")
+            .expectStatus(401);
+      });
       it("should get current user", () => {
          return pactum
             .spec()
