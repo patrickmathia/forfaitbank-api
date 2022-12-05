@@ -1,29 +1,80 @@
-import { PrismaService } from './../prisma/prisma.service';
-import { Injectable } from '@nestjs/common';
-import { CreateOperationDto } from './dto/create-operation.dto';
-import { UpdateOperationDto } from './dto/update-operation.dto';
+import { ForbiddenException, NotFoundException } from "@nestjs/common";
+import { PrismaService } from "./../prisma/prisma.service";
+import { Injectable } from "@nestjs/common";
+import { CreateOperationDto } from "./dto/create-operation.dto";
+import { UpdateOperationDto } from "./dto/update-operation.dto";
 
 @Injectable()
 export class OperationService {
-  constructor(private readonly prisma: PrismaService) {}
-  
-  create(dto: CreateOperationDto) {
-    return 'This action adds a new operation';
-  }
+   constructor(private readonly prisma: PrismaService) {}
 
-  findAll() {
-    return `This action returns all operation`;
-  }
+   async create(userId: number, dto: CreateOperationDto) {
+      const operation = await this.prisma.operation.create({
+         data: {
+            userId,
+            ...dto,
+         },
+      });
+      return operation;
+   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} operation`;
-  }
+   findAll(userId: number) {
+      return this.prisma.operation.findMany({
+         where: {
+            userId,
+         },
+      });
+   }
 
-  update(id: number, dto: UpdateOperationDto) {
-    return `This action updates a #${id} operation`;
-  }
+   findOne(userId: number, operationId: number) {
+      return this.prisma.operation.findMany({
+         where: {
+            id: operationId,
+            userId,
+         },
+      });
+   }
 
-  remove(id: number) {
-    return `This action removes a #${id} operation`;
-  }
+   async update(userId: number, operationId: number, dto: UpdateOperationDto) {
+      const operation = await this.prisma.operation.findFirst({
+         where: {
+            id: operationId,
+         },
+      });
+
+      if (!operation) {
+         throw new NotFoundException("Operation not found.");
+      } else if (operation.userId !== userId) {
+         throw new ForbiddenException("Access to resource denied.");
+      }
+
+      return this.prisma.operation.update({
+         where: {
+            id: operationId,
+         },
+         data: {
+            ...dto,
+         },
+      });
+   }
+
+   async remove(userId: number, operationId: number) {
+      const operation = await this.prisma.operation.findFirst({
+         where: {
+            id: operationId,
+         },
+      });
+
+      if (!operation) {
+         throw new NotFoundException("Operation not found.");
+      } else if (operation.userId !== userId) {
+         throw new ForbiddenException("Access to resource denied.");
+      }
+
+      return this.prisma.operation.delete({
+         where: {
+            id: operationId,
+         },
+      });
+   }
 }

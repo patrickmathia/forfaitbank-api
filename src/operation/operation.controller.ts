@@ -1,36 +1,50 @@
-import { JwtGuard } from './../auth/guard/jwt.guard';
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
-import { OperationService } from './operation.service';
-import { CreateOperationDto } from './dto/create-operation.dto';
-import { UpdateOperationDto } from './dto/update-operation.dto';
+import { JwtGuard } from "./../auth/guard/jwt.guard";
+import {
+   Controller,
+   Get,
+   Post,
+   Body,
+   Patch,
+   Param,
+   Delete,
+   UseGuards,
+} from "@nestjs/common";
+import { OperationService } from "./operation.service";
+import { CreateOperationDto } from "./dto/create-operation.dto";
+import { UpdateOperationDto } from "./dto/update-operation.dto";
+import { GetUser } from "../auth/decorator";
 
 @UseGuards(JwtGuard)
-@Controller('operations')
+@Controller("operations")
 export class OperationController {
-  constructor(private readonly operationService: OperationService) {}
+   constructor(private readonly operationService: OperationService) {}
 
-  @Post()
-  create(@Body() dto: CreateOperationDto) {
-    return this.operationService.create(dto);
-  }
+   @Post()
+   create(@GetUser("id") userId: number, @Body() dto: CreateOperationDto) {
+      return this.operationService.create(userId, dto);
+   }
 
-  @Get()
-  findAll() {
-    return this.operationService.findAll();
-  }
+   @Get()
+   findAll(@GetUser("id") userId: number) {
+      return this.operationService.findAll(userId);
+   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.operationService.findOne(+id);
-  }
+   @Get(":id")
+   findOne(@GetUser("id") userId: number, @Param("id") id: string) {
+      return this.operationService.findOne(userId, +id);
+   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateOperationDto) {
-    return this.operationService.update(+id, dto);
-  }
+   @Patch(":id")
+   update(
+      @GetUser("id") userId: number,
+      @Param("id") id: string,
+      @Body() dto: UpdateOperationDto
+   ) {
+      return this.operationService.update(userId, +id, dto);
+   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.operationService.remove(+id);
-  }
+   @Delete(":id")
+   remove(@GetUser("id") userId: number, @Param("id") id: string) {
+      return this.operationService.remove(userId, +id);
+   }
 }

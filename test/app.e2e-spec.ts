@@ -1,3 +1,5 @@
+import { UpdateOperationDto } from "./../src/operation/dto/update-operation.dto";
+import { CreateOperationDto } from "./../src/operation/dto/create-operation.dto";
 import { Operation } from "./../src/operation/entities/operation.entity";
 import { CreatePackageDto } from "./../src/package/dto/create-package.dto";
 import { EditUserDto } from "./../src/user/dto/edit-user.dto";
@@ -12,6 +14,8 @@ import * as pactum from "pactum";
 describe("AppController (e2e)", () => {
    let app: INestApplication;
    let prisma: PrismaService;
+
+   jest.setTimeout(10000);
 
    beforeAll(async () => {
       const moduleRef = await Test.createTestingModule({
@@ -110,35 +114,102 @@ describe("AppController (e2e)", () => {
    });
 
    describe("Packages", () => {
-      const op: Operation = {
-         name: "operation 1",
-         billType: 10,
-         value: 5000,
-         userId: 1,
-         status: "closed",
-         packages: [],
-      };
-
-      const dto: CreatePackageDto = {
-         billQuantity: 50,
-         billType: 10,
-         status: "closed",
-         color: "#abc123",
-         parentOperation: op,
-      };
-
-      it("should create package", () => {
-         return pactum.spec().post("/packages").withBody(dto);
-      });
+      it("should create package", () => {});
       it("should update package", () => {});
       it("should edit package", () => {});
       it("should delete package", () => {});
    });
 
    describe("Operations", () => {
-      it("should create operation", () => {});
-      it("should update operation", () => {});
-      it("should edit operation", () => {});
-      it("should delete operation", () => {});
+      const dto: CreateOperationDto = {
+         name: "Test Operation 1",
+         value: 5000,
+         billType: 50,
+         status: "closed",
+      };
+
+      it("should get an empty array of operations", () => {
+         return pactum
+            .spec()
+            .get("/operations")
+            .withHeaders({
+               Authorization: "Bearer $S{userAt}",
+            })
+            .expectBody([])
+            .expectStatus(200);
+      });
+
+      it("should create simple operation", () => {
+         return pactum
+            .spec()
+            .post("/operations")
+            .withHeaders({
+               Authorization: "Bearer $S{userAt}",
+            })
+            .withBody(dto)
+            .expectStatus(201)
+            .stores("firstOperationId", "id");
+      });
+
+      it("should create children operations", async () => {
+         let childOne = pactum.clone(dto);
+         let childTwo = pactum.clone(dto);
+
+         childOne.name = "Child 1 Test";
+         childTwo.name = "Child 2 Test";
+
+         await pactum
+            .spec()
+            .post("/operations")
+            .withHeaders({
+               Authorization: "Bearer $S{userAt}",
+            })
+            .withBody({ ...childOne, parentId: `$S{firstOperationId}` })
+            .expectStatus(201);
+
+         await pactum
+            .spec()
+            .post("/operations")
+            .withHeaders({
+               Authorization: "Bearer $S{userAt}",
+            })
+            .withBody({ ...childTwo, parentId: `$S{firstOperationId}` })
+            .expectStatus(201)
+            .stores("lastChildOperationId", "id");
+      });
+
+      it("should get operation by id", () => {
+         return pactum
+            .spec()
+            .get(`/operations/$S{firstOperationId}`)
+            .withHeaders({
+               Authorization: "Bearer $S{userAt}",
+            });
+      });
+
+      it("should update operation", () => {
+         const updateDto: UpdateOperationDto = {
+            name: "Renamed test operation with children",
+         };
+         return pactum
+            .spec()
+            .patch(`/operations/$S{firstOperationId}`)
+            .withHeaders({
+               Authorization: "Bearer $S{userAt}",
+            })
+            .withBody(updateDto)
+            .expectStatus(200)
+            .expectBodyContains(updateDto.name);
+      });
+
+      it("should delete operation", () => {
+         return pactum
+            .spec()
+            .delete(`/operations/$S{lastChildOperationId}`)
+            .withHeaders({
+               Authorization: "Bearer $S{userAt}",
+            })
+            .expectStatus(200);
+      });
    });
 });

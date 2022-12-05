@@ -23,5 +23,9 @@ export class CreatePackageDto {
 
    @IsHexColor()
    @IsNotEmpty()
-   color?: string;
+   color: string;
+
+   @IsInt()
+   @IsNotEmpty()
+   operation: number;
 }
