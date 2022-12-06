@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -12,17 +9,16 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         Int         @id @default(autoincrement())
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
 
-  name  String
-  email String
-  hash  String
-
-  address   String
-  cpf       String
-  birthdate DateTime
+  name       String
+  email      String
+  hash       String
+  address    String
+  cpf        String
+  birthdate  DateTime
 
   operations Operation[]
 
@@ -30,37 +26,36 @@ model User {
 }
 
 model Operation {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                Int         @id @default(autoincrement())
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
 
-  name     String
-  value    Int
-  billType Int
-  status   String
-  packages Package[]
+  name              String
+  value             Int
+  billType          Int
+  status            String?
+  userId            Int
+  parentOperationId Int?
 
-  parentId Int?
-  parent   Operation?  @relation("OperationFamily", fields: [parentId], references: [id])
-  children Operation[] @relation("OperationFamily")
-
-  userId Int
-  user   User @relation(fields: [userId], references: [id])
+  parent            Operation?  @relation("OperationFamily", fields: [parentOperationId], references: [id])
+  children          Operation[] @relation("OperationFamily")
+  user              User        @relation(fields: [userId], references: [id])
+  packages          Package[]
 
   @@map("operations")
 }
 
 model Package {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              Int       @id @default(autoincrement())
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
-  billType     Int
-  billQuantity Int
-  status       String
-  color        String
-
+  billType        Int
+  billQuantity    Int
+  status          String?
+  color           String
   operationId     Int
+  
   parentOperation Operation @relation(fields: [operationId], references: [id])
 
   @@map("packages")

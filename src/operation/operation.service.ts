@@ -3,18 +3,33 @@ import { PrismaService } from "./../prisma/prisma.service";
 import { Injectable } from "@nestjs/common";
 import { CreateOperationDto } from "./dto/create-operation.dto";
 import { UpdateOperationDto } from "./dto/update-operation.dto";
+import { Prisma } from "@prisma/client";
 
 @Injectable()
 export class OperationService {
    constructor(private readonly prisma: PrismaService) {}
 
    async create(userId: number, dto: CreateOperationDto) {
+      const MAX_OPERATION_VALUE = 5000;
+
       const operation = await this.prisma.operation.create({
          data: {
             userId,
             ...dto,
          },
       });
+
+
+      // for (let i = opEntity.closedChildrenQuantity; i > 0; i--) {
+      //    dto.name = `${operation.name} - Sub-operação ${i}`;
+      //    await this.prisma.operation.create({
+      //       data: {
+      //          userId,
+      //          ...closedOperation,
+      //       },
+      //    });
+      // }
+
       return operation;
    }
 

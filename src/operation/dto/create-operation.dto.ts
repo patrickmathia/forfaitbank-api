@@ -2,10 +2,8 @@ import {
    IsNotEmpty,
    IsInt,
    IsString,
-   Max,
    IsIn,
    IsOptional,
-   IsArray,
 } from "class-validator";
 
 export class CreateOperationDto {
@@ -14,7 +12,6 @@ export class CreateOperationDto {
    name: string;
 
    @IsInt()
-   @Max(5000)
    @IsNotEmpty()
    value: number;
 
@@ -23,12 +20,11 @@ export class CreateOperationDto {
    @IsNotEmpty()
    billType: number;
 
-   @IsString()
-   @IsIn(["opened", "reserved", "closed"])
-   @IsNotEmpty()
-   status: string;
-
    @IsInt()
    @IsOptional()
-   parentId?: number;
+   parentOperationId?: number;
+   
+   // @IsString()
+   // @IsIn(["opened", "reserved", "closed"])
+   // readonly status: string;
 }
