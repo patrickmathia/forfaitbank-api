@@ -1,13 +1,17 @@
+import { CreateManyPackagesDto } from "./../package/dto/create-many-packages.dto";
+import { PackageService } from "./../package/package.service";
 import { ForbiddenException, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "./../prisma/prisma.service";
 import { Injectable } from "@nestjs/common";
 import { CreateOperationDto } from "./dto/create-operation.dto";
 import { UpdateOperationDto } from "./dto/update-operation.dto";
-import { Prisma } from "@prisma/client";
 
 @Injectable()
 export class OperationService {
-   constructor(private readonly prisma: PrismaService) {}
+   constructor(
+      private readonly prisma: PrismaService,
+      private readonly pkg: PackageService
+   ) {}
 
    async create(userId: number, dto: CreateOperationDto) {
       const MAX_OPERATION_VALUE = 5000;
@@ -19,18 +23,19 @@ export class OperationService {
          },
       });
 
+      if (operation.value > MAX_OPERATION_VALUE) {
+         await this.createChildrenOperations(operation.value, operation.id);
+      } else {
+         const _dto: CreateManyPackagesDto = {
+            value: operation.value,
+            billType: operation.billType,
+            operationId: operation.id,
+         };
 
-      // for (let i = opEntity.closedChildrenQuantity; i > 0; i--) {
-      //    dto.name = `${operation.name} - Sub-operação ${i}`;
-      //    await this.prisma.operation.create({
-      //       data: {
-      //          userId,
-      //          ...closedOperation,
-      //       },
-      //    });
-      // }
+         await this.pkg.createMany(_dto);
+      }
 
-      return operation;
+      return this.findOne(userId, operation.id);
    }
 
    findAll(userId: number) {
@@ -42,11 +47,12 @@ export class OperationService {
    }
 
    findOne(userId: number, operationId: number) {
-      return this.prisma.operation.findMany({
+      return this.prisma.operation.findFirst({
          where: {
             id: operationId,
             userId,
          },
+         include: { packages: { select: { id: true } } },
       });
    }
 
@@ -92,4 +98,6 @@ export class OperationService {
          },
       });
    }
+
+   async createChildrenOperations(value: number, operationId: number) {}
 }

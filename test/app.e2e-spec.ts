@@ -1,7 +1,5 @@
 import { UpdateOperationDto } from "./../src/operation/dto/update-operation.dto";
 import { CreateOperationDto } from "./../src/operation/dto/create-operation.dto";
-import { Operation } from "./../src/operation/entities/operation.entity";
-import { CreatePackageDto } from "./../src/package/dto/create-package.dto";
 import { EditUserDto } from "./../src/user/dto/edit-user.dto";
 import { AuthDto } from "./../src/auth/dto/auth.dto";
 import { CreateUserDto } from "./../src/user/dto/create-user.dto";
@@ -124,8 +122,7 @@ describe("AppController (e2e)", () => {
       const dto: CreateOperationDto = {
          name: "Test Operation 1",
          value: 5000,
-         billType: 50,
-         status: "closed",
+         billType: 100,
       };
 
       it("should get an empty array of operations", () => {
@@ -148,34 +145,8 @@ describe("AppController (e2e)", () => {
             })
             .withBody(dto)
             .expectStatus(201)
+            .expectJsonLike({ parentOperationId: null, packages: [] })
             .stores("firstOperationId", "id");
-      });
-
-      it("should create children operations", async () => {
-         let childOne = pactum.clone(dto);
-         let childTwo = pactum.clone(dto);
-
-         childOne.name = "Child 1 Test";
-         childTwo.name = "Child 2 Test";
-
-         await pactum
-            .spec()
-            .post("/operations")
-            .withHeaders({
-               Authorization: "Bearer $S{userAt}",
-            })
-            .withBody({ ...childOne, parentId: `$S{firstOperationId}` })
-            .expectStatus(201);
-
-         await pactum
-            .spec()
-            .post("/operations")
-            .withHeaders({
-               Authorization: "Bearer $S{userAt}",
-            })
-            .withBody({ ...childTwo, parentId: `$S{firstOperationId}` })
-            .expectStatus(201)
-            .stores("lastChildOperationId", "id");
       });
 
       it("should get operation by id", () => {
@@ -184,8 +155,37 @@ describe("AppController (e2e)", () => {
             .get(`/operations/$S{firstOperationId}`)
             .withHeaders({
                Authorization: "Bearer $S{userAt}",
-            });
+            })
+            .expectStatus(200)
+            .expectJsonLike({ packages: [] });
       });
+
+      // it("should create children operations", async () => {
+      //    let childOne = pactum.clone(dto);
+      //    let childTwo = pactum.clone(dto);
+
+      //    childOne.name = "Child 1 Test";
+      //    childTwo.name = "Child 2 Test";
+
+      //    await pactum
+      //       .spec()
+      //       .post("/operations")
+      //       .withHeaders({
+      //          Authorization: "Bearer $S{userAt}",
+      //       })
+      //       .withBody({ ...childOne, parentId: `$S{firstOperationId}` })
+      //       .expectStatus(201);
+
+      //    await pactum
+      //       .spec()
+      //       .post("/operations")
+      //       .withHeaders({
+      //          Authorization: "Bearer $S{userAt}",
+      //       })
+      //       .withBody({ ...childTwo, parentId: `$S{firstOperationId}` })
+      //       .expectStatus(201)
+      //       .stores("lastChildOperationId", "id");
+      // });
 
       it("should update operation", () => {
          const updateDto: UpdateOperationDto = {
@@ -202,14 +202,14 @@ describe("AppController (e2e)", () => {
             .expectBodyContains(updateDto.name);
       });
 
-      it("should delete operation", () => {
-         return pactum
-            .spec()
-            .delete(`/operations/$S{lastChildOperationId}`)
-            .withHeaders({
-               Authorization: "Bearer $S{userAt}",
-            })
-            .expectStatus(200);
-      });
+      // it("should delete operation", () => {
+      //    return pactum
+      //       .spec()
+      //       .delete(`/operations/$S{lastChildOperationId}`)
+      //       .withHeaders({
+      //          Authorization: "Bearer $S{userAt}",
+      //       })
+      //       .expectStatus(200);
+      // });
    });
 });

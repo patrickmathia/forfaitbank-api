@@ -3,7 +3,9 @@ import {
    IsIn,
    IsInt,
    IsNotEmpty,
+   IsOptional,
    IsString,
+   Max,
 } from "class-validator";
 
 export class CreatePackageDto {
@@ -13,19 +15,20 @@ export class CreatePackageDto {
    billType: number;
 
    @IsInt()
+   @Max(50)
    @IsNotEmpty()
    billQuantity: number;
 
    @IsString()
    @IsIn(["opened", "closed"])
-   @IsNotEmpty()
-   status: string;
+   @IsOptional()
+   status?: string;
 
    @IsHexColor()
-   @IsNotEmpty()
-   color: string;
+   @IsOptional()
+   color?: string;
 
    @IsInt()
    @IsNotEmpty()
-   operation: number;
+   operationId: number;
 }

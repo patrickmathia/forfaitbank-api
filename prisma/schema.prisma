@@ -53,7 +53,7 @@ model Package {
   billType        Int
   billQuantity    Int
   status          String?
-  color           String
+  color           String?
   operationId     Int
   
   parentOperation Operation @relation(fields: [operationId], references: [id])
