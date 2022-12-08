@@ -1,10 +1,4 @@
-import {
-   IsNotEmpty,
-   IsInt,
-   IsString,
-   IsIn,
-   IsOptional,
-} from "class-validator";
+import { IsNotEmpty, IsInt, IsString, IsIn, IsOptional } from "class-validator";
 
 export class CreateOperationDto {
    @IsString()
@@ -23,8 +17,9 @@ export class CreateOperationDto {
    @IsInt()
    @IsOptional()
    parentOperationId?: number;
-   
-   // @IsString()
-   // @IsIn(["opened", "reserved", "closed"])
-   // readonly status: string;
+
+   @IsString()
+   @IsIn(["opened", "reserved", "closed"])
+   @IsOptional()
+   status?: string;
 }

@@ -33,6 +33,7 @@ describe("AppController (e2e)", () => {
       prisma = app.get(PrismaService);
       await prisma.cleanDatabase();
       pactum.request.setBaseUrl("http://localhost:3300");
+      pactum.request.setDefaultTimeout(100000)
    });
 
    afterAll(async () => {
@@ -111,20 +112,7 @@ describe("AppController (e2e)", () => {
       });
    });
 
-   describe("Packages", () => {
-      it("should create package", () => {});
-      it("should update package", () => {});
-      it("should edit package", () => {});
-      it("should delete package", () => {});
-   });
-
    describe("Operations", () => {
-      const dto: CreateOperationDto = {
-         name: "Test Operation 1",
-         value: 5000,
-         billType: 100,
-      };
-
       it("should get an empty array of operations", () => {
          return pactum
             .spec()
@@ -136,7 +124,13 @@ describe("AppController (e2e)", () => {
             .expectStatus(200);
       });
 
-      it("should create simple operation", () => {
+      it("should create a concluded operation", () => {
+         const dto: CreateOperationDto = {
+            name: "Test Operation 1",
+            value: 5000,
+            billType: 100,
+         };
+
          return pactum
             .spec()
             .post("/operations")
@@ -145,8 +139,34 @@ describe("AppController (e2e)", () => {
             })
             .withBody(dto)
             .expectStatus(201)
-            .expectJsonLike({ parentOperationId: null, packages: [] })
+            .expectJsonLike({
+               parentOperationId: null,
+               packages: "$V.length === 50",
+               status: "concluded",
+            })
             .stores("firstOperationId", "id");
+      });
+
+      it("should create a reserved operation", () => {
+         const dto: CreateOperationDto = {
+            name: "Test Operation 2",
+            value: 3499,
+            billType: 100,
+         };
+
+         return pactum
+            .spec()
+            .post("/operations")
+            .withHeaders({
+               Authorization: "Bearer $S{userAt}",
+            })
+            .withBody(dto)
+            .expectStatus(201)
+            .expectJsonLike({
+               parentOperationId: null,
+               packages: "$V.length === 36",
+               status: "reserved",
+            });
       });
 
       it("should get operation by id", () => {
@@ -157,35 +177,53 @@ describe("AppController (e2e)", () => {
                Authorization: "Bearer $S{userAt}",
             })
             .expectStatus(200)
-            .expectJsonLike({ packages: [] });
+            .expectJsonLike({ packages: "$V.length === 50" });
       });
 
-      // it("should create children operations", async () => {
-      //    let childOne = pactum.clone(dto);
-      //    let childTwo = pactum.clone(dto);
+      it("should create distinct children operations", () => {
+         const dto: CreateOperationDto = {
+            name: "Big operation 1",
+            value: 20000,
+            billType: 50,
+         };
 
-      //    childOne.name = "Child 1 Test";
-      //    childTwo.name = "Child 2 Test";
+         return pactum
+            .spec()
+            .post("/operations")
+            .withHeaders({
+               Authorization: "Bearer $S{userAt}",
+            })
+            .withBody(dto)
+            .expectStatus(201)
+            .expectJsonLike({
+               parentOperationId: "$V == null",
+               packages: "$V.length === 0",
+               children: "$V.length === 4",
+            });
+      });
+      
+      it("should create a big operation", () => {
+         const dto: CreateOperationDto = {
+            name: "Big operation 2",
+            value: 2233921,
+            billType: 10,
+         };
 
-      //    await pactum
-      //       .spec()
-      //       .post("/operations")
-      //       .withHeaders({
-      //          Authorization: "Bearer $S{userAt}",
-      //       })
-      //       .withBody({ ...childOne, parentId: `$S{firstOperationId}` })
-      //       .expectStatus(201);
-
-      //    await pactum
-      //       .spec()
-      //       .post("/operations")
-      //       .withHeaders({
-      //          Authorization: "Bearer $S{userAt}",
-      //       })
-      //       .withBody({ ...childTwo, parentId: `$S{firstOperationId}` })
-      //       .expectStatus(201)
-      //       .stores("lastChildOperationId", "id");
-      // });
+         return pactum
+            .spec()
+            .post("/operations")
+            .withHeaders({
+               Authorization: "Bearer $S{userAt}",
+            })
+            .withBody(dto)
+            .expectStatus(201)
+            .expectJsonLike({
+               parentOperationId: "$V == null",
+               packages: "$V.length === 0",
+               children: "$V.length > 0",
+               status: 'reserved'
+            })
+      });
 
       it("should update operation", () => {
          const updateDto: UpdateOperationDto = {
