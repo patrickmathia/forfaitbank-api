@@ -33,7 +33,7 @@ describe("AppController (e2e)", () => {
       prisma = app.get(PrismaService);
       await prisma.cleanDatabase();
       pactum.request.setBaseUrl("http://localhost:3300");
-      pactum.request.setDefaultTimeout(100000)
+      pactum.request.setDefaultTimeout(100000);
    });
 
    afterAll(async () => {
@@ -201,11 +201,11 @@ describe("AppController (e2e)", () => {
                children: "$V.length === 4",
             });
       });
-      
+
       it("should create a big operation", () => {
          const dto: CreateOperationDto = {
             name: "Big operation 2",
-            value: 2233921,
+            value: 223392,
             billType: 10,
          };
 
@@ -221,8 +221,9 @@ describe("AppController (e2e)", () => {
                parentOperationId: "$V == null",
                packages: "$V.length === 0",
                children: "$V.length > 0",
-               status: 'reserved'
+               status: "reserved",
             })
+            .stores("relatedOperationId", "id");
       });
 
       it("should update operation", () => {
@@ -240,14 +241,24 @@ describe("AppController (e2e)", () => {
             .expectBodyContains(updateDto.name);
       });
 
-      // it("should delete operation", () => {
-      //    return pactum
-      //       .spec()
-      //       .delete(`/operations/$S{lastChildOperationId}`)
-      //       .withHeaders({
-      //          Authorization: "Bearer $S{userAt}",
-      //       })
-      //       .expectStatus(200);
-      // });
+      it("should delete simple operation", () => {
+         return pactum
+            .spec()
+            .delete(`/operations/$S{firstOperationId}`)
+            .withHeaders({
+               Authorization: "Bearer $S{userAt}",
+            })
+            .expectStatus(200);
+      });
+
+      it("should delete operation with relationship", () => {
+         return pactum
+            .spec()
+            .delete(`/operations/$S{relatedOperationId}`)
+            .withHeaders({
+               Authorization: "Bearer $S{userAt}",
+            })
+            .expectStatus(200);
+      });
    });
 });

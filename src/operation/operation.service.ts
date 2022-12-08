@@ -140,6 +140,7 @@ export class OperationService {
          where: {
             id: operationId,
          },
+         include: { children: { select: { id: true } } },
       });
 
       if (!operation) {
@@ -148,10 +149,31 @@ export class OperationService {
          throw new ForbiddenException("Access to resource denied.");
       }
 
-      return this.prisma.operation.delete({
-         where: {
-            id: operationId,
-         },
-      });
+      if (operation.parentOperationId == null && operation.value <= 5000) {
+         return this.prisma.$transaction([
+            this.prisma.package.deleteMany({
+               where: { operationId: operation.id },
+            }),
+            this.prisma.operation.delete({
+               where: { id: operation.id },
+            }),
+         ]);
+      } else {
+         // delete children operations and packages
+         operation.children.forEach(async (op) => {
+            await this.prisma.package.deleteMany({
+               where: { operationId: op.id },
+            });
+            await this.prisma.operation.delete({
+               where: { id: op.id },
+            });
+         })
+         
+         return await this.prisma.operation.delete({
+            where: { id : operation.id }
+         })
+
+
+      }
    }
 }
