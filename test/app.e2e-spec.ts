@@ -47,7 +47,7 @@ describe("AppController (e2e)", () => {
          email: "pms@gmail.com",
          password: "1234",
          cpf: "432.234.432-43",
-         birthdate: new Date(2003, 11, 22),
+         birthdate: "2003-11-22",
          address: "Rua 5B",
       };
 

@@ -18,14 +18,17 @@ export class AuthService {
    async signup(dto: CreateUserDto) {
       // generate the password
       const hash = await argon.hash(dto.password);
+      const birthdate = new Date(dto.birthdate);
 
       delete dto.password;
+      delete dto.birthdate;
 
       // save the new user in the db
       try {
          const user = await this.prisma.user.create({
             data: {
                hash,
+               birthdate,
                ...dto,
             },
          });
