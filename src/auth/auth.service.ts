@@ -36,7 +36,7 @@ export class AuthService {
          return this.signToken(user.id, user.email);
       } catch (error) {
          if (error instanceof PrismaClientKnownRequestError) {
-            // error code referring to the reuse of a unique field (in this case, email)
+            // error code referring to the reuse of a unique field (in this case, email or cpf)
             if (error.code === "P2002")
                throw new ForbiddenException("Credentials taken.");
          }

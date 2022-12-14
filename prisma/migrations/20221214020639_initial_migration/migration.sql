@@ -21,9 +21,9 @@ CREATE TABLE "operations" (
     "name" TEXT NOT NULL,
     "value" INTEGER NOT NULL,
     "billType" INTEGER NOT NULL,
-    "status" TEXT NOT NULL,
-    "parentId" INTEGER,
+    "status" TEXT,
     "userId" INTEGER NOT NULL,
+    "parentOperationId" INTEGER,
 
     CONSTRAINT "operations_pkey" PRIMARY KEY ("id")
 );
@@ -35,15 +35,21 @@ CREATE TABLE "packages" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "billType" INTEGER NOT NULL,
     "billQuantity" INTEGER NOT NULL,
-    "status" TEXT NOT NULL,
-    "color" TEXT NOT NULL,
+    "status" TEXT,
+    "color" TEXT,
     "operationId" INTEGER NOT NULL,
 
     CONSTRAINT "packages_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateIndex
+CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "users_cpf_key" ON "users"("cpf");
+
 -- AddForeignKey
-ALTER TABLE "operations" ADD CONSTRAINT "operations_parentId_fkey" FOREIGN KEY ("parentId") REFERENCES "operations"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "operations" ADD CONSTRAINT "operations_parentOperationId_fkey" FOREIGN KEY ("parentOperationId") REFERENCES "operations"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "operations" ADD CONSTRAINT "operations_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

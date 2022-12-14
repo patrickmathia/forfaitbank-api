@@ -68,6 +68,25 @@ describe("AppController (e2e)", () => {
             .expectStatus(201);
       });
 
+      it("should throw if same email", () => {
+         return pactum
+            .spec()
+            .post("/auth/signup")
+            .withBody(dto)
+            .expectStatus(403);
+      });
+
+      it("should throw if same cpf", () => {
+         let clone = pactum.clone(dto);
+         clone.email = "newemail@gmail.com";
+         
+         return pactum
+            .spec()
+            .post("/auth/signup")
+            .withBody(clone)
+            .expectStatus(403);
+      });
+
       it("should sign in", () => {
          return pactum
             .spec()
