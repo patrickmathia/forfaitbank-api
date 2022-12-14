@@ -1,28 +1,21 @@
-name: NodeJS with Webpack
+name: CI for NestJS
 
 on:
   push:
-    branches: [ "main" ]
   pull_request:
-    branches: [ "main" ]
 
 jobs:
-  test_project:
+  build:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [14.x, 16.x, 18.x]
-
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v2
 
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ matrix.node-version }}
+      - name: Install dependencies
+        run: npm install
 
-    - name: Build and run e2e tests
-      run: |
-        npm install
-        npm run test:e2e
+      - name: Build the application
+        run: npm run build
+
+      - name: Test the application
+        run: npm run ci:e2e
