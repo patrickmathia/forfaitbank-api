@@ -3,7 +3,7 @@ import { exec } from "child_process";
 import * as util from "util";
 
 @Injectable()
-export class TestingService {
+export class DatabaseService {
 	execute = util.promisify(exec);
 
 	private async run(cmd: string, response: { msg: string }) {
