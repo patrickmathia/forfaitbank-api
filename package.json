@@ -30,8 +30,14 @@
     "pretest:e2e": "npm run db:test:up && sleep 3 && npm run prisma:test:deploy && sleep 1",
     "test:e2e": "npx env-cmd -f ./test/.env.test -- jest --watch --no-cache --config ./test/jest-e2e.json",
     "posttest:e2e": "npm run db:test:rm",
-    "ci:e2e": "npm run pretest:e2e && npx env-cmd -f ./test/.env.test -- jest --no-cache --config ./test/jest-e2e.json",
-    "postci:e2e": "npm run db:test:rm"
+    "pretest:db:e2e": "npm run db:test:up",
+    "test:db:e2e": "npx env-cmd -f ./test/.env.test -- jest database.e2e-spec.ts --watch --no-cache --config ./test/jest-e2e.json",
+    "posttest:db:e2e": "npm run db:test:rm",
+    "ci:e2e": "npm run pretest:e2e && npx env-cmd -f ./test/.env.test -- jest app.e2e-spec.ts --no-cache --config ./test/jest-e2e.json",
+    "postci:e2e": "npm run db:test:rm",
+    "preci:db:e2e": "npm run db:test:up",
+    "ci:db:e2e": "npx env-cmd -f ./test/.env.test -- jest database.e2e-spec.ts --no-cache --config ./test/jest-e2e.json",
+    "postci:db:e2e": "npm run db:test:rm"
   },
   "dependencies": {
     "@nestjs/common": "^9.0.0",
