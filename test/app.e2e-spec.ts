@@ -98,6 +98,13 @@ describe("AppController (e2e)", () => {
    });
 
    describe("User", () => {
+      const dto: EditUserDto = {
+         name: "Patrick Matias",
+         address: "Rua 5B, Jardim Nova Cidade",
+         birthdate: new Date(2003, 1, 1),
+         password: "1234"
+      };
+
       it("should throw if no access token provided", () => {
          return pactum.spec().get("/users/me").expectStatus(401);
       });
@@ -111,12 +118,6 @@ describe("AppController (e2e)", () => {
             .expectStatus(200);
       });
       it("should edit user", () => {
-         const dto: EditUserDto = {
-            name: "Patrick Matias",
-            address: "Rua 5B, Jardim Nova Cidade",
-            birthdate: new Date(2003, 1, 1),
-         };
-
          return pactum
             .spec()
             .patch("/users")
@@ -127,8 +128,34 @@ describe("AppController (e2e)", () => {
             .expectStatus(200)
             .expectBodyContains(dto.name)
             .expectBodyContains(dto.address)
-            .expectBodyContains(dto.birthdate);
+            .expectBodyContains(dto.birthdate)
       });
+
+      it("should edit password", () => {
+         dto.newPassword = '2345';
+
+         return pactum
+            .spec()
+            .patch("/users")
+            .withHeaders({
+               Authorization: "Bearer $S{userAt}",
+            })
+            .withBody(dto)
+            .expectStatus(200)
+      })
+
+      it("must throw if no password provided to edit", () => {
+         delete dto.password, dto.newPassword;
+
+         return pactum
+            .spec()
+            .patch("/users")
+            .withHeaders({
+               Authorization: "Bearer $S{userAt}",
+            })
+            .withBody(dto)
+            .expectStatus(400)
+      })
    });
 
    describe("Operations", () => {
