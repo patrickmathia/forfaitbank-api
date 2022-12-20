@@ -114,7 +114,7 @@ export class OperationService {
             userId,
          },
          include: {
-            packages: { select: { id: true, status: true } },
+            packages: { select: { id: true, billType: true, billQuantity: true, status: true, color: true } },
             children: { select: { id: true, name: true, status: true } },
          },
       });
