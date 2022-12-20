@@ -96,6 +96,14 @@ export class OperationService {
          where: {
             userId,
          },
+         select: {
+            id: true,
+            name: true,
+            value: true,
+            status: true,
+            parentOperationId: true,
+            children: { select: { id: true } }
+         }
       });
    }
 
