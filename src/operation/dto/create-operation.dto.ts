@@ -14,10 +14,6 @@ export class CreateOperationDto {
    @IsNotEmpty()
    billType: number;
 
-   @IsInt()
-   @IsOptional()
-   parentOperationId?: number;
-
    @IsString()
    @IsIn(["opened", "reserved", "closed"])
    @IsOptional()

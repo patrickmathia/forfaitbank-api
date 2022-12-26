@@ -24,6 +24,7 @@ CREATE TABLE "operations" (
     "status" TEXT,
     "userId" INTEGER NOT NULL,
     "parentOperationId" INTEGER,
+    "subId" INTEGER,
 
     CONSTRAINT "operations_pkey" PRIMARY KEY ("id")
 );

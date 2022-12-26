@@ -36,6 +36,7 @@ model Operation {
   status            String?
   userId            Int
   parentOperationId Int?
+  subId             Int?
 
   parent   Operation?  @relation("OperationFamily", fields: [parentOperationId], references: [id])
   children Operation[] @relation("OperationFamily")

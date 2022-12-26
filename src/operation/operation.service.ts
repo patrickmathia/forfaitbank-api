@@ -1,3 +1,4 @@
+import { CreateSubOperationDto } from './dto/create-sub-operation.dto';
 import { CreateManyOperationsDto } from "./dto/create-many-operations.dto";
 import { CreateManyPackagesDto } from "./../package/dto/create-many-packages.dto";
 import { PackageService } from "./../package/package.service";
@@ -54,41 +55,57 @@ export class OperationService {
          let remainingOperationValue = Math.round(
             dto.value % this.MAX_OPERATION_VALUE
          );
-
-         let child: CreateOperationDto = {
-            name: "",
-            value: this.MAX_OPERATION_VALUE,
-            billType: dto.billType,
-            parentOperationId: operation.id,
-            status: "closed",
-         };
+         let dtoArray: CreateSubOperationDto[] = []
+         
+         delete dto.value
 
          for (let i = closedOperations; i > 0; i--) {
-            child.name = `${dto.name} - Sub-operação ${i}`;
-            await this.create(userId, child);
+            dtoArray.push({
+               parentOperationId: operation.id,
+               subId: i,
+               value: this.MAX_OPERATION_VALUE,
+               status: 'closed',
+               ...dto
+            })
          }
 
          if (remainingOperationValue > 0) {
-            child.name = `${dto.name} - Sub-operação ${closedOperations + 1}`;
-            child.value = remainingOperationValue;
-            await this.create(userId, child);
+            dtoArray.unshift({
+               parentOperationId: operation.id,
+               subId: closedOperations + 1,
+               value: remainingOperationValue,
+               status: 'reserved',
+               ...dto
+            })
          }
+
+         await this.createMany(userId, dtoArray)
 
          // set status
          const op = await this.findOne(userId, operation.id);
          const RESERVED_OPERATION = (op) => op.status === "reserved";
          if (op.children.some(RESERVED_OPERATION)) {
-            await this.update(userId, operation.id, {
+            await this.update(userId, op.id, {
                status: "reserved",
             });
          } else {
-            await this.update(userId, operation.id, {
+            await this.update(userId, op.id, {
                status: "concluded",
             });
          }
 
          return await this.findOne(userId, operation.id);
       }
+   }
+
+   async createMany(userId: number, dto: CreateOperationDto[] | CreateSubOperationDto[]) {
+      const dtosWithUserId = dto.map( d => ({...d, userId}))
+
+      const operationsArray = await this.prisma.operation.createMany({
+         data: dtosWithUserId
+      })
+
+      return operationsArray
    }
 
    async findAll(userId: number) {
@@ -115,7 +132,7 @@ export class OperationService {
          },
          include: {
             packages: { select: { id: true, billType: true, billQuantity: true, status: true, color: true } },
-            children: { select: { id: true, name: true, status: true } },
+            children: { select: { subId: true, name: true, status: true } },
          },
       });
    }
