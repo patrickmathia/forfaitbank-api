@@ -119,6 +119,7 @@ export class OperationService {
             value: true,
             status: true,
             parentOperationId: true,
+            subId: true,
             children: { select: { id: true } }
          }
       });
