@@ -1,5 +1,4 @@
 import { CreateSubOperationDto } from './dto/create-sub-operation.dto';
-import { CreateManyOperationsDto } from "./dto/create-many-operations.dto";
 import { CreateManyPackagesDto } from "./../package/dto/create-many-packages.dto";
 import { PackageService } from "./../package/package.service";
 import { ForbiddenException, NotFoundException } from "@nestjs/common";
@@ -7,6 +6,7 @@ import { PrismaService } from "./../prisma/prisma.service";
 import { Injectable } from "@nestjs/common";
 import { CreateOperationDto } from "./dto/create-operation.dto";
 import { UpdateOperationDto } from "./dto/update-operation.dto";
+import { Operation } from './entities/operation.entity';
 
 @Injectable()
 export class OperationService {
@@ -21,7 +21,7 @@ export class OperationService {
          data: {
             userId,
             ...dto,
-         },
+         }
       });
 
       if (dto.value <= this.MAX_OPERATION_VALUE) {
@@ -125,7 +125,7 @@ export class OperationService {
       });
    }
 
-   async findOne(userId: number, operationId: number) {
+   async findOne(userId: number, operationId: number): Promise<Operation> {
       return await this.prisma.operation.findFirst({
          where: {
             id: operationId,
