@@ -79,7 +79,7 @@ describe("AppController (e2e)", () => {
       it("should throw if same cpf", () => {
          let clone = pactum.clone(dto);
          clone.email = "newemail@gmail.com";
-         
+
          return pactum
             .spec()
             .post("/auth/signup")
@@ -102,60 +102,38 @@ describe("AppController (e2e)", () => {
          name: "Patrick Matias",
          address: "Rua 5B, Jardim Nova Cidade",
          birthdate: new Date(2003, 1, 1),
-         password: "1234"
+         password: "1234",
       };
 
       it("should throw if no access token provided", () => {
          return pactum.spec().get("/users/me").expectStatus(401);
       });
       it("should get current user", () => {
-         return pactum
-            .spec()
-            .get("/users/me")
-            .withHeaders({
-               Authorization: "Bearer $S{userAt}",
-            })
-            .expectStatus(200);
+         pactum.request.setDefaultHeaders("Authorization", "Bearer $S{userAt}");
+         return pactum.spec().get("/users/me").expectStatus(200);
       });
       it("should edit user", () => {
          return pactum
             .spec()
             .patch("/users")
-            .withHeaders({
-               Authorization: "Bearer $S{userAt}",
-            })
             .withBody(dto)
             .expectStatus(200)
             .expectBodyContains(dto.name)
             .expectBodyContains(dto.address)
-            .expectBodyContains(dto.birthdate)
+            .expectBodyContains(dto.birthdate);
       });
 
       it("should edit password", () => {
-         dto.newPassword = '2345';
+         dto.newPassword = "2345";
 
-         return pactum
-            .spec()
-            .patch("/users")
-            .withHeaders({
-               Authorization: "Bearer $S{userAt}",
-            })
-            .withBody(dto)
-            .expectStatus(200)
-      })
+         return pactum.spec().patch("/users").withBody(dto).expectStatus(200);
+      });
 
       it("must throw if no password provided to edit", () => {
          delete dto.password, dto.newPassword;
 
-         return pactum
-            .spec()
-            .patch("/users")
-            .withHeaders({
-               Authorization: "Bearer $S{userAt}",
-            })
-            .withBody(dto)
-            .expectStatus(400)
-      })
+         return pactum.spec().patch("/users").withBody(dto).expectStatus(400);
+      });
    });
 
    describe("Operations", () => {
@@ -163,9 +141,6 @@ describe("AppController (e2e)", () => {
          return pactum
             .spec()
             .get("/operations")
-            .withHeaders({
-               Authorization: "Bearer $S{userAt}",
-            })
             .expectBody([])
             .expectStatus(200);
       });
@@ -180,9 +155,6 @@ describe("AppController (e2e)", () => {
          return pactum
             .spec()
             .post("/operations")
-            .withHeaders({
-               Authorization: "Bearer $S{userAt}",
-            })
             .withBody(dto)
             .expectStatus(201)
             .expectJsonLike({
@@ -203,9 +175,6 @@ describe("AppController (e2e)", () => {
          return pactum
             .spec()
             .post("/operations")
-            .withHeaders({
-               Authorization: "Bearer $S{userAt}",
-            })
             .withBody(dto)
             .expectStatus(201)
             .expectJsonLike({
@@ -219,9 +188,6 @@ describe("AppController (e2e)", () => {
          return pactum
             .spec()
             .get(`/operations/$S{firstOperationId}`)
-            .withHeaders({
-               Authorization: "Bearer $S{userAt}",
-            })
             .expectStatus(200)
             .expectJsonLike({ packages: "$V.length === 50" });
       });
@@ -236,9 +202,6 @@ describe("AppController (e2e)", () => {
          return pactum
             .spec()
             .post("/operations")
-            .withHeaders({
-               Authorization: "Bearer $S{userAt}",
-            })
             .withBody(dto)
             .expectStatus(201)
             .expectJsonLike({
@@ -258,9 +221,6 @@ describe("AppController (e2e)", () => {
          return pactum
             .spec()
             .post("/operations")
-            .withHeaders({
-               Authorization: "Bearer $S{userAt}",
-            })
             .withBody(dto)
             .expectStatus(201)
             .expectJsonLike({
@@ -279,9 +239,6 @@ describe("AppController (e2e)", () => {
          return pactum
             .spec()
             .patch(`/operations/$S{firstOperationId}`)
-            .withHeaders({
-               Authorization: "Bearer $S{userAt}",
-            })
             .withBody(updateDto)
             .expectStatus(200)
             .expectBodyContains(updateDto.name);
@@ -291,9 +248,6 @@ describe("AppController (e2e)", () => {
          return pactum
             .spec()
             .delete(`/operations/$S{firstOperationId}`)
-            .withHeaders({
-               Authorization: "Bearer $S{userAt}",
-            })
             .expectStatus(200);
       });
 
@@ -301,9 +255,6 @@ describe("AppController (e2e)", () => {
          return pactum
             .spec()
             .delete(`/operations/$S{relatedOperationId}`)
-            .withHeaders({
-               Authorization: "Bearer $S{userAt}",
-            })
             .expectStatus(200);
       });
    });
