@@ -5,11 +5,13 @@ export class Operation {
     name: string;
     value: number;
     billType: number;
-    status: string;
+    status?: string;
     packages: Package[];
-
+    
     parent?: Operation;
     children?: { name: string; status: string; subId: number; }[];
-
+    
+    parentOperationId?: number;
+    subId?: number;
     userId: number;
 }
