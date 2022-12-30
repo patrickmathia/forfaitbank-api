@@ -8,6 +8,7 @@ import { INestApplication, ValidationPipe } from "@nestjs/common";
 import { AppModule } from "./../src/app.module";
 import { PrismaService } from "../src/prisma/prisma.service";
 import * as pactum from "pactum";
+import { Operation } from "src/operation/entities/operation.entity";
 
 describe("AppController (e2e)", () => {
    let app: INestApplication;
@@ -137,6 +138,8 @@ describe("AppController (e2e)", () => {
    });
 
    describe("Operations", () => {
+      var parentOperationId: number;
+
       it("should get an empty array of operations", () => {
          return pactum
             .spec()
@@ -192,14 +195,14 @@ describe("AppController (e2e)", () => {
             .expectJsonLike({ packages: "$V.length === 50" });
       });
 
-      it("should create distinct children operations", () => {
+      it("should create distinct children operations", async () => {
          const dto: CreateOperationDto = {
             name: "Big operation 1",
             value: 20000,
             billType: 50,
          };
 
-         return pactum
+         const response: Operation = await pactum
             .spec()
             .post("/operations")
             .withBody(dto)
@@ -208,7 +211,29 @@ describe("AppController (e2e)", () => {
                parentOperationId: "$V == null",
                packages: "$V.length === 0",
                children: "$V.length === 4",
-            });
+            })
+            .returns("res.body")
+            .toss();
+
+         parentOperationId = response.id;
+      });
+
+      it("should get children operations", async () => {
+         const response: Operation[] = await pactum
+            .spec()
+            .get("/operations")
+            .withBody({ parentOperationId })
+            .expectStatus(200)
+            .expectJsonLength(4)
+            .returns("res.body")
+            .toss();
+         expect(response).toEqual(
+            expect.arrayContaining([
+               expect.objectContaining({
+                  parentOperationId,
+               }),
+            ])
+         );
       });
 
       it("should create a big operation", () => {

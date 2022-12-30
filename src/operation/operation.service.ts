@@ -108,10 +108,11 @@ export class OperationService {
       return operationsArray
    }
 
-   async findAll(userId: number) {
+   async findAll(userId: number, where: { parentOperationId?: number }) {
       return await this.prisma.operation.findMany({
          where: {
             userId,
+            ...where
          },
          select: {
             id: true,

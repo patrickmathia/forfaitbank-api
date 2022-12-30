@@ -25,8 +25,11 @@ export class OperationController {
    }
 
    @Get()
-   findAll(@GetUser("id") userId: number) {
-      return this.operationService.findAll(userId);
+   findAll(
+      @GetUser("id") userId: number,
+      @Body() where: { parentOperationId?: number } = {}
+   ) {
+      return this.operationService.findAll(userId, where);
    }
 
    @Get(":id")
