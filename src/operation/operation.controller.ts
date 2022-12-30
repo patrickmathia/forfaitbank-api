@@ -24,12 +24,17 @@ export class OperationController {
       return this.operationService.create(userId, dto);
    }
 
-   @Get()
-   findAll(
+   @Post(":id")
+   findChildren(
       @GetUser("id") userId: number,
-      @Body() where: { parentOperationId?: number } = {}
+      @Param("id") parentOperationId: number
    ) {
-      return this.operationService.findAll(userId, where);
+      return this.operationService.findChildren(userId, +parentOperationId);
+   }
+
+   @Get()
+   findAll(@GetUser("id") userId: number) {
+      return this.operationService.findAll(userId);
    }
 
    @Get(":id")

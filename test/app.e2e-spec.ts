@@ -221,9 +221,8 @@ describe("AppController (e2e)", () => {
       it("should get children operations", async () => {
          const response: Operation[] = await pactum
             .spec()
-            .get("/operations")
-            .withBody({ parentOperationId })
-            .expectStatus(200)
+            .post(`/operations/${parentOperationId}`)
+            .expectStatus(201)
             .expectJsonLength(4)
             .returns("res.body")
             .toss();

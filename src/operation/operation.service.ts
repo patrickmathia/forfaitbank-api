@@ -108,11 +108,10 @@ export class OperationService {
       return operationsArray
    }
 
-   async findAll(userId: number, where: { parentOperationId?: number }) {
+   async findAll(userId: number) {
       return await this.prisma.operation.findMany({
          where: {
-            userId,
-            ...where
+            userId
          },
          select: {
             id: true,
@@ -124,6 +123,23 @@ export class OperationService {
             children: { select: { id: true } }
          }
       });
+   }
+
+   async findChildren(userId: number, parentOperationId: number) {
+      return await this.prisma.operation.findMany({
+         where: {
+            userId,
+            parentOperationId
+         },
+         select: {
+            id: true,
+            name: true,
+            value: true,
+            status: true,
+            parentOperationId: true,
+            subId: true
+         }
+      })
    }
 
    async findOne(userId: number, operationId: number): Promise<Operation> {
