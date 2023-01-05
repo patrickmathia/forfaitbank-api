@@ -2,6 +2,9 @@ import { Package } from "../../package/entities/package.entity";
 
 export class Operation {
     id: number;
+    createdAt: Date;
+    updatedAt: Date;
+
     name: string;
     value: number;
     billType: number;
@@ -9,7 +12,7 @@ export class Operation {
     packages: Package[];
     
     parent?: Operation;
-    children?: { name: string; status: string; subId: number; }[];
+    children?: Partial<Operation>[];
     
     parentOperationId?: number;
     subId?: number;
