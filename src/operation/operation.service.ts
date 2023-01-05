@@ -1,3 +1,4 @@
+import { CreateNestedPackageDto } from './../package/dto/create-nested-package.dto';
 import { CreateSubOperationDto } from './dto/create-sub-operation.dto';
 import { CreateManyPackagesDto } from "./../package/dto/create-many-packages.dto";
 import { PackageService } from "./../package/package.service";
@@ -12,11 +13,13 @@ import { Operation } from './entities/operation.entity';
 export class OperationService {
    constructor(
       private readonly prisma: PrismaService,
-      private readonly pkg: PackageService
+      private readonly packageService: PackageService
    ) {}
-   MAX_OPERATION_VALUE = 5000;
+   private readonly MAX_OPERATION_VALUE = 5000;
 
    async create(userId: number, dto: CreateOperationDto) {
+      const needSubOperations = dto.value <= this.MAX_OPERATION_VALUE ? false : true
+
       const operation = await this.prisma.operation.create({
          data: {
             userId,
@@ -24,29 +27,25 @@ export class OperationService {
          }
       });
 
-      if (dto.value <= this.MAX_OPERATION_VALUE) {
+      if (!needSubOperations) {
          // create individual operation
-         const pkgDto: CreateManyPackagesDto = {
-            value: operation.value,
-            billType: operation.billType,
-            operationId: operation.id,
-         };
-         await this.pkg.createMany(pkgDto);
+         const packages = this.packageService.nestedCreateMany(dto.value, dto.billType)
 
-         // set status
-         const op = await this.findOne(userId, operation.id);
-         const OPENED_PACKAGE = (pkg) => pkg.status == "opened";
-         if (op.packages.some(OPENED_PACKAGE)) {
-            await this.update(userId, operation.id, {
-               status: "reserved",
-            });
-         } else {
-            await this.update(userId, operation.id, {
-               status: "concluded",
-            });
-         }
+         const status = this.setOperationStatus(packages)
+         
+         const operation = await this.prisma.operation.create({
+            data: {
+               packages: { createMany: { data: [...packages] } },
+               userId,
+               status,
+               ...dto,
+            },
+            include: {
+               packages: true
+            }
+         });
 
-         return await this.findOne(userId, operation.id);
+         return operation
       } else {
          // create parent operation with children
          let closedOperations = Math.round(
@@ -95,6 +94,15 @@ export class OperationService {
          }
 
          return await this.findOne(userId, operation.id);
+      }
+   }
+
+   private setOperationStatus(packages: CreateNestedPackageDto[]) {
+      const openedPackage = (pkg) => pkg.status == "opened";
+      if(packages.some(openedPackage)) {
+         return "reserved"
+      } else {
+         return "concluded"
       }
    }
 

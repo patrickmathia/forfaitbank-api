@@ -48,7 +48,7 @@ describe("OperationService", () => {
    });
 
    describe("createOperation", () => {
-      let operation: Operation;
+      let operation;
 
       it("should create a new operation with packages", async () => {
          const dto: CreateOperationDto = {
@@ -68,6 +68,7 @@ describe("OperationService", () => {
             updatedAt: expect.any(Date),
             packages: expect.any(Array<Package>),
             userId: expect.any(Number),
+            status: "concluded"
          });
          expect(operation.packages).toHaveLength(10);
 
