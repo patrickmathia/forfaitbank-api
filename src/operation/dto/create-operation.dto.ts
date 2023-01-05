@@ -15,7 +15,7 @@ export class CreateOperationDto {
    billType: number;
 
    @IsString()
-   @IsIn(["opened", "reserved", "closed"])
+   @IsIn(["opened", "reserved", "concluded"])
    @IsOptional()
    status?: string;
 }

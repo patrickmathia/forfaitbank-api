@@ -1,3 +1,4 @@
+import { IsIn } from "class-validator";
 import { Package } from "../../package/entities/package.entity";
 
 export class Operation {
@@ -8,7 +9,9 @@ export class Operation {
     name: string;
     value: number;
     billType: number;
-    status?: string;
+
+    @IsIn(["opened", "reserved", "concluded"])
+    status: string;
     packages: Package[];
     
     parent?: Operation;

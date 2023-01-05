@@ -33,7 +33,7 @@ model Operation {
   name              String
   value             Int
   billType          Int
-  status            String?
+  status            String
   userId            Int
   parentOperationId Int?
   subId             Int?
