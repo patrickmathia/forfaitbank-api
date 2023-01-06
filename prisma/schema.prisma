@@ -36,7 +36,6 @@ model Operation {
   status            String
   userId            Int
   parentOperationId Int?
-  subId             Int?
 
   parent   Operation?  @relation("OperationFamily", fields: [parentOperationId], references: [id])
   children Operation[] @relation("OperationFamily")
@@ -53,11 +52,13 @@ model Package {
 
   billType     Int
   billQuantity Int
-  status       String?
-  color        String?
-  operationId  Int
+  status       String
+  color        String
+  
+  operationId  Int?
+  grandpaId    Int?
 
-  parentOperation Operation @relation(fields: [operationId], references: [id])
+  parentOperation Operation? @relation(fields: [operationId], references: [id])
 
   @@map("packages")
 }

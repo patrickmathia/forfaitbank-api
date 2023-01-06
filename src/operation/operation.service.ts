@@ -140,7 +140,6 @@ export class OperationService {
             value: true,
             status: true,
             parentOperationId: true,
-            subId: true,
             children: { select: { id: true } },
          },
       });
@@ -158,7 +157,6 @@ export class OperationService {
             value: true,
             status: true,
             parentOperationId: true,
-            subId: true,
          },
       });
    }
@@ -179,7 +177,7 @@ export class OperationService {
                   color: true,
                },
             },
-            children: { select: { subId: true, name: true, status: true } },
+            children: { select: { name: true, status: true } },
          },
       });
    }

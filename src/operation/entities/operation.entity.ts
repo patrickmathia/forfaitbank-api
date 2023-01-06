@@ -12,10 +12,10 @@ export class Operation {
 
     @IsIn(["opened", "reserved", "concluded"])
     status: string;
-    packages: Package[];
+    packages: Package[] | Partial<Package>[];
     
     parent?: Operation;
-    children?: Partial<Operation>[];
+    children?: Operation[] | Partial<Operation>[];
     
     parentOperationId?: number;
     subId?: number;
