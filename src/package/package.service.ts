@@ -82,20 +82,20 @@ export class PackageService {
       return dtoArray;
    }
 
-   nestedCreateMany(value: number, billType: number): CreateNestedPackageDto[] {
-      const remainingBills = Math.round(value % billType);
-      let totalClosedPackages = Math.round(value / billType);
+   nestedCreateMany(args: { value: number; billType: number }) {
+      const remainingBills = Math.round(args.value % args.billType);
+      let totalClosedPackages = Math.round(args.value / args.billType);
       let packages: CreateNestedPackageDto[] = [];
 
       while (totalClosedPackages > 0) {
-         packages.push(this.generateClosedPackage({ billType }));
+         packages.push(this.generateClosedPackage({ billType: args.billType }));
          totalClosedPackages--;
       }
 
       if (remainingBills) {
          packages.push(
             this.generateOpenedPackage({
-               billType,
+               billType: args.billType,
                billQuantity: remainingBills,
             })
          );

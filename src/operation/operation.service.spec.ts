@@ -5,7 +5,6 @@ import { PackageService } from "./../package/package.service";
 import { PrismaService } from "./../prisma/prisma.service";
 import { Test, TestingModule } from "@nestjs/testing";
 import { OperationService } from "./operation.service";
-import * as pactum from "pactum";
 import { CreateOperationDto } from "./dto/create-operation.dto";
 
 describe("OperationService", () => {
@@ -60,18 +59,15 @@ describe("OperationService", () => {
          operation = await service.create(userId, dto);
 
          expect(operation).toMatchObject<Operation>({
-            name: "Test Operation 1",
-            value: 1000,
-            billType: 100,
+            ...dto,
             id: expect.any(Number),
             createdAt: expect.any(Date),
             updatedAt: expect.any(Date),
             packages: expect.any(Array<Package>),
             userId: expect.any(Number),
-            status: "concluded"
+            status: "concluded",
          });
          expect(operation.packages).toHaveLength(10);
-
       });
 
       it("should be with valid package", async () => {
@@ -82,6 +78,30 @@ describe("OperationService", () => {
             color: expect.any(String),
          });
       });
+
+      it("should create with sub-operations", async () => {
+         const dto: CreateOperationDto = {
+            name: "Test Parent Operation 1",
+            value: 20000,
+            billType: 100,
+         };
+
+         operation = await service.create(userId, dto);
+         
+         expect(operation).toMatchObject({
+            ...dto,
+            status: "concluded",
+         });
+         expect(operation.children).toHaveLength(4);
+         expect(operation.packages).toHaveLength(0);
+         
+         expect(operation.children[3]).toMatchObject({
+            value: 5000,
+            parentOperationId: operation.id,
+            status: "concluded",
+         })
+      });
+
 
    });
 });

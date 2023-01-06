@@ -1,13 +1,12 @@
-import { CreateNestedPackageDto } from './../package/dto/create-nested-package.dto';
-import { CreateSubOperationDto } from './dto/create-sub-operation.dto';
-import { CreateManyPackagesDto } from "./../package/dto/create-many-packages.dto";
+import { CreateNestedPackageDto } from "./../package/dto/create-nested-package.dto";
+import { CreateSubOperationDto } from "./dto/create-sub-operation.dto";
 import { PackageService } from "./../package/package.service";
 import { ForbiddenException, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "./../prisma/prisma.service";
 import { Injectable } from "@nestjs/common";
 import { CreateOperationDto } from "./dto/create-operation.dto";
 import { UpdateOperationDto } from "./dto/update-operation.dto";
-import { Operation } from './entities/operation.entity';
+import { Operation } from "./entities/operation.entity";
 
 @Injectable()
 export class OperationService {
@@ -18,108 +17,122 @@ export class OperationService {
    private readonly MAX_OPERATION_VALUE = 5000;
 
    async create(userId: number, dto: CreateOperationDto) {
-      const needSubOperations = dto.value <= this.MAX_OPERATION_VALUE ? false : true
+      const data = {
+         userId,
+         ...dto,
+         packages: undefined,
+         children: undefined,
+      };
 
+      const needSubOperations = dto.value > this.MAX_OPERATION_VALUE;
+
+      if (needSubOperations) {
+         const subOperations = this.nestedCreateMany(userId, dto);
+         data.children = {
+            createMany: { data: subOperations },
+         };
+      } else {
+         const packages = this.packageService.nestedCreateMany({ ...dto });
+         data.packages = {
+            createMany: { data: packages },
+         };
+      }
+
+      const children = needSubOperations
+         ? data.children.createMany.data
+         : data.packages.createMany.data;
+
+      data.status = this.setOperationStatus(children);
+
+      // create individual operation
       const operation = await this.prisma.operation.create({
-         data: {
-            userId,
-            ...dto,
-         }
+         data,
+         include: {
+            packages: true,
+            children: true,
+         },
       });
 
-      if (!needSubOperations) {
-         // create individual operation
-         const packages = this.packageService.nestedCreateMany(dto.value, dto.billType)
+      return operation;
+   }
 
-         const status = this.setOperationStatus(packages)
-         
-         const operation = await this.prisma.operation.create({
-            data: {
-               packages: { createMany: { data: [...packages] } },
-               userId,
-               status,
-               ...dto,
-            },
-            include: {
-               packages: true
-            }
-         });
+   private nestedCreateMany(
+      userId: number,
+      dto: CreateOperationDto
+   ): CreateSubOperationDto[] {
+      const remainingValue = Math.round(dto.value % this.MAX_OPERATION_VALUE);
+      let closedOperations = Math.round(dto.value / this.MAX_OPERATION_VALUE);
+      let dtoArray: CreateOperationDto[] = [];
 
-         return operation
+      while (closedOperations) {
+         dtoArray.push(this.generateConcludedOperation({ ...dto }));
+         closedOperations--;
+      }
+
+      if (remainingValue) {
+         dtoArray.unshift(
+            this.generateReservedOperation({ ...dto, remainingValue })
+         );
+      }
+
+      const operations: CreateSubOperationDto[] = dtoArray.map((op) => ({
+         ...op,
+         userId,
+      }));
+
+      return operations;
+   }
+
+   private generateConcludedOperation(dto: CreateOperationDto) {
+      return {
+         name: dto.name,
+         billType: dto.billType,
+         value: this.MAX_OPERATION_VALUE,
+         status: "concluded",
+      };
+   }
+
+   private generateReservedOperation(
+      dto: CreateOperationDto & { remainingValue: number }
+   ) {
+      return {
+         name: dto.name,
+         billType: dto.billType,
+         value: dto.remainingValue,
+         status: "concluded",
+      };
+   }
+
+   private setOperationStatus(
+      array: CreateNestedPackageDto[] | CreateSubOperationDto[]
+   ) {
+      const reservedOperation = (op) => op.status === "reserved";
+      const openedPackage = (pkg) => pkg.status === "opened";
+
+      if (array.some(openedPackage || reservedOperation)) {
+         return "reserved";
       } else {
-         // create parent operation with children
-         let closedOperations = Math.round(
-            dto.value / this.MAX_OPERATION_VALUE
-         );
-         let remainingOperationValue = Math.round(
-            dto.value % this.MAX_OPERATION_VALUE
-         );
-         let dtoArray: CreateSubOperationDto[] = []
-         
-         delete dto.value
-
-         for (let i = closedOperations; i > 0; i--) {
-            dtoArray.push({
-               parentOperationId: operation.id,
-               subId: i,
-               value: this.MAX_OPERATION_VALUE,
-               status: 'closed',
-               ...dto
-            })
-         }
-
-         if (remainingOperationValue > 0) {
-            dtoArray.unshift({
-               parentOperationId: operation.id,
-               subId: closedOperations + 1,
-               value: remainingOperationValue,
-               status: 'reserved',
-               ...dto
-            })
-         }
-
-         await this.createMany(userId, dtoArray)
-
-         // set status
-         const op = await this.findOne(userId, operation.id);
-         const RESERVED_OPERATION = (op) => op.status === "reserved";
-         if (op.children.some(RESERVED_OPERATION)) {
-            await this.update(userId, op.id, {
-               status: "reserved",
-            });
-         } else {
-            await this.update(userId, op.id, {
-               status: "concluded",
-            });
-         }
-
-         return await this.findOne(userId, operation.id);
+         return "concluded";
       }
    }
 
-   private setOperationStatus(packages: CreateNestedPackageDto[]) {
-      const openedPackage = (pkg) => pkg.status == "opened";
-      if(packages.some(openedPackage)) {
-         return "reserved"
-      } else {
-         return "concluded"
-      }
-   }
-
-   async createMany(userId: number, dto: CreateOperationDto[] | CreateSubOperationDto[]) {
-      const dtosWithUserId = dto.map( d => ({...d, userId}))
+   async createMany(
+      userId: number,
+      dto: CreateOperationDto[] | CreateSubOperationDto[]
+   ) {
+      const dtosWithUserId = dto.map((d) => ({ ...d, userId }));
 
       const operationsArray = await this.prisma.operation.createMany({
-         data: dtosWithUserId
-      })
+         data: dtosWithUserId,
+      });
 
-      return operationsArray
+      return operationsArray;
    }
 
    async findAll(userId: number) {
       return await this.prisma.operation.findMany({
          where: {
-            userId
+            userId,
          },
          select: {
             id: true,
@@ -128,8 +141,8 @@ export class OperationService {
             status: true,
             parentOperationId: true,
             subId: true,
-            children: { select: { id: true } }
-         }
+            children: { select: { id: true } },
+         },
       });
    }
 
@@ -137,7 +150,7 @@ export class OperationService {
       return await this.prisma.operation.findMany({
          where: {
             userId,
-            parentOperationId
+            parentOperationId,
          },
          select: {
             id: true,
@@ -145,9 +158,9 @@ export class OperationService {
             value: true,
             status: true,
             parentOperationId: true,
-            subId: true
-         }
-      })
+            subId: true,
+         },
+      });
    }
 
    async findOne(userId: number, operationId: number): Promise<Operation> {
@@ -157,7 +170,15 @@ export class OperationService {
             userId,
          },
          include: {
-            packages: { select: { id: true, billType: true, billQuantity: true, status: true, color: true } },
+            packages: {
+               select: {
+                  id: true,
+                  billType: true,
+                  billQuantity: true,
+                  status: true,
+                  color: true,
+               },
+            },
             children: { select: { subId: true, name: true, status: true } },
          },
       });
@@ -218,13 +239,11 @@ export class OperationService {
             await this.prisma.operation.delete({
                where: { id: op.id },
             });
-         })
-         
+         });
+
          return await this.prisma.operation.delete({
-            where: { id : operation.id }
-         })
-
-
+            where: { id: operation.id },
+         });
       }
    }
 }
