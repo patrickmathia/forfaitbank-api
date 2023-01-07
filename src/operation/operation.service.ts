@@ -22,6 +22,7 @@ export class OperationService {
          ...dto,
          packages: undefined,
          children: undefined,
+         status: 'opened',
       };
 
       const needSubOperations = dto.value > this.MAX_OPERATION_VALUE;
@@ -62,7 +63,7 @@ export class OperationService {
    ): CreateSubOperationDto[] {
       const remainingValue = Math.round(dto.value % this.MAX_OPERATION_VALUE);
       let closedOperations = Math.round(dto.value / this.MAX_OPERATION_VALUE);
-      let dtoArray: CreateOperationDto[] = [];
+      const dtoArray: CreateOperationDto[] = [];
 
       while (closedOperations) {
          dtoArray.push(this.generateConcludedOperation({ ...dto }));
