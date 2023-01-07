@@ -76,6 +76,7 @@ describe("OperationService", () => {
             billQuantity: expect.any(Number),
             status: expect.any(String),
             color: expect.any(String),
+            operationId: operation.id
          });
       });
 
