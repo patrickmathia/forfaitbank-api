@@ -4,9 +4,5 @@ import { CreateOperationDto } from './create-operation.dto';
 export class CreateSubOperationDto extends CreateOperationDto{
    @IsInt()
    @IsNotEmpty()
-   parentOperationId: number;
-
-   @IsInt()
-   @IsNotEmpty()
-   subId: number;
+   userId: number;
 }

@@ -1,15 +1,21 @@
+import { IsIn } from "class-validator";
 import { Package } from "../../package/entities/package.entity";
 
 export class Operation {
     id: number;
+    createdAt: Date;
+    updatedAt: Date;
+
     name: string;
     value: number;
     billType: number;
-    status?: string;
-    packages: Package[];
+
+    @IsIn(["opened", "reserved", "concluded"])
+    status: string;
+    packages: Package[] | Partial<Package>[];
     
     parent?: Operation;
-    children?: { name: string; status: string; subId: number; }[];
+    children?: Operation[] | Partial<Operation>[];
     
     parentOperationId?: number;
     subId?: number;
