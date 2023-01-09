@@ -100,17 +100,17 @@ export class OperationService {
          name: dto.name,
          billType: dto.billType,
          value: dto.remainingValue,
-         status: "concluded",
+         status: "reserved",
       };
    }
 
    private setOperationStatus(
       array: CreateNestedPackageDto[] | CreateSubOperationDto[]
    ) {
-      const reservedOperation = (op) => op.status === "reserved";
-      const openedPackage = (pkg) => pkg.status === "opened";
+      const openedPackageOrReservedOperation = item => 
+         item.status === "opened" || item.status === "reserved";
 
-      if (array.some(openedPackage || reservedOperation)) {
+      if (array.some(openedPackageOrReservedOperation)) {
          return "reserved";
       } else {
          return "concluded";

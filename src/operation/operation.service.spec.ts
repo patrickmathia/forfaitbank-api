@@ -46,10 +46,10 @@ describe("OperationService", () => {
       expect(service).toBeDefined();
    });
 
-   describe("createOperation", () => {
+   describe("should create operation", () => {
       let operation;
 
-      it("should create a new operation with packages", async () => {
+      it("concluded with packages", async () => {
          const dto: CreateOperationDto = {
             name: "Test Operation 1",
             value: 1000,
@@ -70,7 +70,7 @@ describe("OperationService", () => {
          expect(operation.packages).toHaveLength(10);
       });
 
-      it("should be with valid package", async () => {
+      it("with valid package", async () => {
          expect(operation.packages[0]).toMatchObject<Package>({
             billType: expect.any(Number),
             billQuantity: expect.any(Number),
@@ -80,7 +80,37 @@ describe("OperationService", () => {
          });
       });
 
-      it("should create with sub-operations", async () => {
+      it("reserved with packages", async () => {
+         const dto: CreateOperationDto = {
+            name: "Reserved Operation 1",
+            value: 1001,
+            billType: 10,
+         };
+
+         operation = await service.create(userId, dto);
+
+         expect(operation).toMatchObject({
+            ...dto,
+            userId: expect.any(Number),
+            status: "reserved",
+         });
+
+         expect(operation.packages).toHaveLength(101);
+
+         const lastChild = operation.packages[100];
+         expect(lastChild).toMatchObject({
+            billQuantity: 1,
+            status: 'opened'
+         })
+
+         const penultimateChild = operation.packages[99];
+         expect(penultimateChild).toMatchObject({
+            billQuantity: 50,
+            status: 'closed'
+         })
+      })
+
+      it("concluded with sub-operations", async () => {
          const dto: CreateOperationDto = {
             name: "Test Parent Operation 1",
             value: 20000,
@@ -95,13 +125,40 @@ describe("OperationService", () => {
          });
          expect(operation.children).toHaveLength(4);
          expect(operation.packages).toHaveLength(0);
+
+         const lastChild = operation.children[3];
          
-         expect(operation.children[3]).toMatchObject({
+         expect(lastChild).toMatchObject({
             value: 5000,
             parentOperationId: operation.id,
             status: "concluded",
          })
       });
+
+      it("reserved with sub-operations", async () => {
+         const dto: CreateOperationDto = {
+            name: "Test Parent Operation 2",
+            value: 12345,
+            billType: 50,
+         };
+
+         operation = await service.create(userId, dto);
+
+         expect(operation).toMatchObject({
+            ...dto,
+            status: "reserved",
+         });
+         expect(operation.children).toHaveLength(3);
+         expect(operation.packages).toHaveLength(0);
+         
+         const reservedChild = operation.children[0];
+
+         expect(reservedChild).toMatchObject({
+            value: 2345,
+            parentOperationId: operation.id,
+            status: "reserved",
+         })
+      })
 
 
    });
