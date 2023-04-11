@@ -18,7 +18,4 @@ jobs:
         run: npm run build
 
       - name: Test the application
-        run: npm run ci:e2e
-
-      - name: Test database service
-        run: npm run ci:db:e2e
+        run: npm run test:e2e
