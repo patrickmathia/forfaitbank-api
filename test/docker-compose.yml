@@ -1,5 +1,5 @@
 services:
-  test-db:
+  db:
     image: postgres
     ports: 
      - 7777:5432
