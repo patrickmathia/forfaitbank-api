@@ -5,6 +5,7 @@ import { AuthModule } from "./auth/auth.module"
 import { UserModule } from "./user/user.module"
 import { OperationModule } from "./operation/operation.module"
 import { DatabaseModule } from "./database/database.module"
+import { GuestModule } from './guest/guest.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { DatabaseModule } from "./database/database.module"
     UserModule,
     OperationModule,
     DatabaseModule,
+    GuestModule,
   ],
   controllers: [],
   providers: [],
