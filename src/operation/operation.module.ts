@@ -5,6 +5,7 @@ import { PackageService } from '../package/package.service';
 
 @Module({
   controllers: [OperationController],
-  providers: [OperationService, PackageService]
+  providers: [OperationService, PackageService],
+  exports: [OperationService]
 })
 export class OperationModule {}
