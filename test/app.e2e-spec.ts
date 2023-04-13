@@ -98,6 +98,25 @@ describe("AppController (e2e)", () => {
       });
    });
 
+      describe("Guest", () => {
+      it("should be created", async () => {
+         return await pactum
+            .spec()
+            .post("/guest/create")
+            .expectStatus(201)
+            .expectBodyContains("access_token")
+            .stores("guestAt", "access_token")
+      });
+
+      it("should have operations", async () => {
+         return await pactum
+            .spec()
+            .get('/operations')
+            .withHeaders('Authorization', "Bearer $S{guestAt}")
+            .expectJsonLength(7)
+      })
+   })
+
    describe("User", () => {
       const dto: EditUserDto = {
          name: "Patrick Matias",
