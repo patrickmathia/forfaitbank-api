@@ -78,7 +78,7 @@ describe("AppController (e2e)", () => {
       });
 
       it("should throw if same cpf", () => {
-         let clone = pactum.clone(dto);
+         const clone = pactum.clone(dto);
          clone.email = "newemail@gmail.com";
 
          return pactum
@@ -97,6 +97,25 @@ describe("AppController (e2e)", () => {
             .stores("userAt", "access_token");
       });
    });
+
+      describe("Guest", () => {
+      it("should be created", async () => {
+         return await pactum
+            .spec()
+            .post("/guest/create")
+            .expectStatus(201)
+            .expectBodyContains("access_token")
+            .stores("guestAt", "access_token")
+      });
+
+      it("should have operations", async () => {
+         return await pactum
+            .spec()
+            .get('/operations')
+            .withHeaders('Authorization', "Bearer $S{guestAt}")
+            .expectJsonLength(7)
+      })
+   })
 
    describe("User", () => {
       const dto: EditUserDto = {
@@ -138,7 +157,7 @@ describe("AppController (e2e)", () => {
    });
 
    describe("Operations", () => {
-      var parentOperationId: number;
+      let parentOperationId: number;
 
       it("should get an empty array of operations", () => {
          return pactum
