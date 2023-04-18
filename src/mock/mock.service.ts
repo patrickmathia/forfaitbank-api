@@ -2,25 +2,27 @@ import { Injectable } from "@nestjs/common"
 import { CreateUserDto } from "./../user/dto"
 import { CreateOperationDto } from "./../operation/dto/create-operation.dto"
 import { faker } from "@faker-js/faker"
+import { generate as generateRandomCpf } from "gerador-validador-cpf"
 
 @Injectable()
 export class MockService {
   user(): CreateUserDto {
-    const fname = faker.name.firstName()
-    const lname = faker.name.lastName()
-    const fullName = `${fname} ${lname}`
+    const firstName = faker.name.firstName()
+    const lastName = faker.name.lastName()
+    const fullName = `${firstName} ${lastName}`
     const email = faker.internet
-      .email(fname, lname, "forfaitbank.com")
+      .email(firstName, lastName, "forfaitbank.com")
       .toLowerCase()
     const address = `${faker.address.streetAddress()}, ${faker.address.cityName()}`
     const birthdate = faker.date.birthdate().toString()
+    const cpf = generateRandomCpf({ format: true })
 
     return {
       name: fullName,
       email,
       address,
       birthdate,
-      cpf: "000.000.000-00",
+      cpf,
       password: "password",
     }
   }
