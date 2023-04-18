@@ -1,32 +1,29 @@
 import { Injectable } from "@nestjs/common"
 import { AuthService } from "./../auth/auth.service"
 import { OperationService } from "./../operation/operation.service"
-import { PrismaService } from "./../prisma/prisma.service"
 import { MockService } from "./../mock/mock.service"
+import { JwtService } from "@nestjs/jwt"
 
 @Injectable()
 export class GuestService {
   constructor(
     private auth: AuthService,
     private operation: OperationService,
-    private prisma: PrismaService,
+    private jwt: JwtService,
     private mock: MockService
   ) {}
 
   async create() {
-    const user = this.mock.user()
+    const { user: mockUser, operation } = this.mock
 
-    const accessToken = await this.auth.signup(user)
+    const { access_token } = await this.auth.signup(mockUser())
 
-    const { id: userId } = await this.prisma.user.findFirst({
-      where: { email: user.email },
-      select: { id: true },
-    })
+    const user = this.jwt.decode(access_token)
 
-    await this.operation.create(userId, this.mock.operation.concluded())
-    await this.operation.create(userId, this.mock.operation.reserved())
-    await this.operation.create(userId, this.mock.operation.parent())
+    await this.operation.create(user.sub, operation.concluded())
+    await this.operation.create(user.sub, operation.reserved())
+    await this.operation.create(user.sub, operation.parent())
 
-    return accessToken
+    return { access_token }
   }
 }
