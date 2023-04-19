@@ -8,7 +8,7 @@ import { INestApplication, ValidationPipe } from "@nestjs/common";
 import { AppModule } from "./../src/app.module";
 import { PrismaService } from "../src/prisma/prisma.service";
 import * as pactum from "pactum";
-import { Operation } from "src/operation/entities/operation.entity";
+import type { Operation } from "@prisma/client";
 
 describe("AppController (e2e)", () => {
    let app: INestApplication;

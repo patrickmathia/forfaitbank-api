@@ -1,4 +1,4 @@
-import { Operation } from "./entities/operation.entity";
+import type { Operation } from "@prisma/client";
 import { Package } from "../package/entities/package.entity";
 import { ConfigService } from "@nestjs/config";
 import { PackageService } from "./../package/package.service";
@@ -58,7 +58,7 @@ describe("OperationService", () => {
 
          operation = await service.create(userId, dto);
 
-         expect(operation).toMatchObject<Operation>({
+         expect(operation).toMatchObject<Operation & { packages: Package[] }>({
             ...dto,
             id: expect.any(Number),
             createdAt: expect.any(Date),
@@ -66,6 +66,7 @@ describe("OperationService", () => {
             packages: expect.any(Array<Package>),
             userId: expect.any(Number),
             status: "concluded",
+            parentOperationId: 0
          });
          expect(operation.packages).toHaveLength(10);
       });
