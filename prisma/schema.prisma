@@ -25,17 +25,30 @@ model User {
   @@map("users")
 }
 
+enum OperationBillType {
+  ten
+  fifty
+  hundred
+}
+
+enum OperationStatus {
+  opened
+  reserved
+  concluded
+}
+
 model Operation {
-  id        Int      @id @default(autoincrement())
+  id        String      @id
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   name              String
   value             Int
-  billType          Int
-  status            String
+  billType          OperationBillType
+  status            OperationStatus
+
   userId            Int
-  parentOperationId Int?
+  parentOperationId String?
 
   parent   Operation?  @relation("OperationFamily", fields: [parentOperationId], references: [id])
   children Operation[] @relation("OperationFamily")
@@ -45,18 +58,24 @@ model Operation {
   @@map("operations")
 }
 
+enum PackageStatus {
+  opened
+  closed
+}
+
 model Package {
   id        Int      @id @default(autoincrement())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  billType     Int
+  billType     OperationBillType
   billQuantity Int
-  status       String
+  value        Int
+  status       PackageStatus
   color        String
   
-  operationId  Int?
-  grandpaId    Int?
+  operationId  String?
+  grandpaId    String?
 
   parentOperation Operation? @relation(fields: [operationId], references: [id])
 
